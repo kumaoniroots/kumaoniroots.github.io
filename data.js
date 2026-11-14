@@ -41,7 +41,7 @@ const SITE = {
   "contacts": [
     {
       "label": "WhatsApp",
-      "value": "+91-7617523038   (  https://wa.me/message/DPFNGL77UPCPB1 )"
+      "value": "+91-7617523038 ,   https://wa.me/message/DPFNGL77UPCPB1 "
     },
     {
       "label": "Email",
