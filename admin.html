@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="robots" content="noindex">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Admin – Kumaoni Roots</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div id="hdr"></div>
+<section><div class="admin" id="admin"></div></section>
+<div id="ftr"></div>
+<script src="data.js"></script>
+<script src="site.js"></script>
+<script>
+const d=JSON.parse(JSON.stringify(SITE)),box=$('admin');
+const get=p=>p.split('.').reduce((o,k)=>o[k],d);
+const put=(p,v)=>{const a=p.split('.'),l=a.pop();a.reduce((o,k)=>o[k],d)[l]=v};
+const inp=(label,p,area)=>`<label>${label}</label>`+(area?`<textarea data-o="${p}" style="min-height:${area}px">${esc(get(p))}</textarea>`:`<input data-o="${p}" value="${esc(get(p))}">`);
+const pic=(p,note)=>`<div class="pic">${get(p)?`<img src="${get(p)}" alt="">`:'<span>No image</span>'}<div><button class="btn sm" data-up="${p}">Choose image</button> ${get(p)?`<button class="btn sm red" data-rm="${p}">Remove</button>`:''}<small>${note}</small></div></div>`;
+const del=p=>`<button class="btn sm red" data-del="${p}" title="Delete">✕</button>`;
+function shrink(file,max,q){return new Promise(res=>{const r=new FileReader();r.onload=()=>{const im=new Image();im.onload=()=>{const k=Math.min(1,max/Math.max(im.width,im.height)),c=document.createElement('canvas');c.width=im.width*k;c.height=im.height*k;c.getContext('2d').drawImage(im,0,0,c.width,c.height);res(c.toDataURL('image/jpeg',q))};im.src=r.result};r.readAsDataURL(file)})}
+function draw(){
+ box.innerHTML=`<h3>Admin Panel</h3>
+ <p class="note" style="margin:-16px 0 14px">Change anything below and the site updates as a preview. When you are happy, click “Download data.js” at the bottom, then replace the data.js file in your site folder and upload the folder again.</p>
+ <div class="bx"><h4>Whole site</h4>${inp('Brand name','brand')}${inp('Footer text','footer')}</div>
+ <div class="bx"><h4>Home page</h4>${inp('Headline','heroTitle')}${inp('Sub-headline','heroSub',70)}${inp('Button text','heroButton')}
+  <label>Background image</label>${pic('heroImage','A wide landscape photo works best.')}
+  ${inp('“Why choose us” heading','whyTitle')}<label>“Why choose us” boxes</label>
+  ${d.features.map((f,i)=>`<div class="r2"><input data-o="features.${i}.title" value="${esc(f.title)}" placeholder="Title"><input data-o="features.${i}.text" value="${esc(f.text)}" placeholder="Text">${del('features.'+i)}</div>`).join('')}
+  <button class="btn sm" data-add="features">+ Add box</button></div>
+ <div class="bx"><h4>Products page</h4>${inp('Page heading','productsTitle')}${inp('Note under the products','productsNote')}<label>Products</label>
+  ${d.products.map((p,i)=>`<div class="sub"><div class="r3"><input data-o="products.${i}.name" value="${esc(p.name)}" placeholder="Product name"><input data-o="products.${i}.price" value="${esc(p.price)}" placeholder="Price">${del('products.'+i)}</div><input data-o="products.${i}.link" value="${esc(p.link)}" placeholder="Razorpay payment link">${pic('products.'+i+'.image','Square photo works best.')}</div>`).join('')}
+  <button class="btn sm" data-add="products">+ Add product</button></div>
+ <div class="bx"><h4>Our Story page</h4>${inp('Page heading','storyTitle')}${inp('Story (leave a blank line between paragraphs)','story',280)}</div>
+ <div class="bx"><h4>Contact page</h4>${inp('Page heading','contactTitle')}<label>Contact details</label>
+  ${d.contacts.map((c,i)=>`<div class="r2"><input data-o="contacts.${i}.label" value="${esc(c.label)}" placeholder="Label (e.g. Phone)"><input data-o="contacts.${i}.value" value="${esc(c.value)}" placeholder="Value">${del('contacts.'+i)}</div>`).join('')}
+  <button class="btn sm" data-add="contacts">+ Add contact detail</button></div>
+ <p><button class="btn" data-dl="1">Download data.js</button></p>`;
+}
+const blank={features:{title:"New box",text:"Describe it here."},products:{name:"New product",price:"0",image:"",link:""},contacts:{label:"Label",value:"Value"}};
+box.addEventListener('input',e=>{const p=e.target.dataset.o;if(p){put(p,e.target.value);renderSite(d)}});
+box.addEventListener('click',e=>{const t=e.target,s=t.dataset;
+ if(s.del){const a=s.del.split('.'),i=+a.pop();get(a.join('.')).splice(i,1);draw();renderSite(d)}
+ else if(s.add){get(s.add).push({...blank[s.add]});draw();renderSite(d)}
+ else if(s.rm){put(s.rm,'');draw();renderSite(d)}
+ else if(s.up){const p=s.up,f=document.createElement('input');f.type='file';f.accept='image/*';
+  f.onchange=async()=>{if(!f.files[0])return;const h=p==='heroImage';put(p,await shrink(f.files[0],h?1800:800,h?.8:.82));draw();renderSite(d)};f.click()}
+ else if(s.dl){const a=document.createElement('a');a.href=URL.createObjectURL(new Blob(['// ALL editable content lives in this one file (created by admin.html).\nconst SITE = '+JSON.stringify(d,null,2)+';\n'],{type:'text/javascript'}));a.download='data.js';a.click()}
+});
+draw();
+</script>
+</body>
+</html>
